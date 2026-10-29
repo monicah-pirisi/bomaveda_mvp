@@ -1,0 +1,52 @@
+name: bomaveda
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      DB_HOST: db
+      MARIADB_DATABASE: ${MARIADB_DATABASE:?set in .env}
+      MARIADB_USER: ${MARIADB_USER:?set in .env}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?set in .env}
+      APP_KEY: ${APP_KEY:?set in .env}
+      USSD_CODE: "${USSD_CODE:-*519*41#}"
+      USSD_TOKEN: ${USSD_TOKEN:-}
+      USSD_LIVE: ${USSD_LIVE:-0}
+      DOMAIN: ${DOMAIN:-localhost}
+      REQUIRE_2FA: ${REQUIRE_2FA:-1}
+      SIM_ENABLED: ${SIM_ENABLED:-0}
+    ports: ["127.0.0.1:8080:80"]  # this computer only; the public proxy is in docker-compose.prod.yml
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [default, backend]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 80) ? 0 : 1);"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+  db:
+    image: mariadb:11.8  # long-term-support line; the newest rolling 12.x gets shorter support
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${MARIADB_DATABASE:?set in .env}
+      MARIADB_USER: ${MARIADB_USER:?set in .env}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?set in .env}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set in .env}
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    networks: [backend]  # internal network: no internet access, no published port
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+networks:
+  backend:
+    internal: true
+volumes:
+  dbdata:
