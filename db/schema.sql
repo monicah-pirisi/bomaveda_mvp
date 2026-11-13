@@ -41,6 +41,18 @@ CREATE TABLE mentors (
   contact_enc TEXT NULL, active TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 -- Referrals need two different people: one requests, another approves. An admin then records the referral.
+CREATE TABLE evidence (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  case_id BIGINT UNSIGNED NOT NULL,
+  type ENUM('photo','video','voice','document') NOT NULL,
+  original_name VARCHAR(255) NOT NULL,
+  stored_name VARCHAR(80) NOT NULL,
+  mime_type VARCHAR(100) NOT NULL,
+  size INT UNSIGNED NOT NULL DEFAULT 0,
+  uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_case (case_id),
+  FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE escalations (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, case_id BIGINT UNSIGNED NOT NULL, agency VARCHAR(60) NOT NULL, reason_enc TEXT NOT NULL,
   status ENUM('requested','approved','rejected','referred') NOT NULL DEFAULT 'requested',

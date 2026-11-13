@@ -106,14 +106,76 @@ page('Coordinator workspace', function () use ($me, $role, $v, $map, $reveal, $p
       echo '</div>';
     }
   } elseif ($v === 'stats') {
-    $hide = $role !== 'admin'; $st = cfg('status'); $grid = [];
+    $hide = $role !== 'admin'; $st = cfg('status');
+    $fCon = (string)($_GET['con'] ?? '');
+    $fFrom = (string)($_GET['from'] ?? '');
+    $fTo = (string)($_GET['to'] ?? '');
+    $where = []; $args = [];
+    if ($fCon !== '' && isset(cfg('wards')[$fCon])) { $where[] = 'constituency=?'; $args[] = $fCon; }
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fFrom)) { $where[] = 'created_at >= ?'; $args[] = $fFrom.' 00:00:00'; }
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fTo)) { $where[] = 'created_at <= ?'; $args[] = $fTo.' 23:59:59'; }
+    $wSql = $where ? ' WHERE '.implode(' AND ', $where) : '';
+
+    $q = $pdo->prepare('SELECT COUNT(*) FROM cases'.$wSql); $q->execute($args); $total = (int)$q->fetchColumn();
+    $q = $pdo->prepare("SELECT COUNT(*) FROM cases".$wSql.($where ? " AND status='submitted'" : " WHERE status='submitted'")); $q->execute($args); $newC = (int)$q->fetchColumn();
+    $q = $pdo->prepare("SELECT COUNT(*) FROM cases".$wSql.($where ? " AND status='resolved'" : " WHERE status='resolved'")); $q->execute($args); $resolved = (int)$q->fetchColumn();
+    $q = $pdo->prepare("SELECT COUNT(*) FROM cases".$wSql.($where ? " AND urgency='urgent'" : " WHERE urgency='urgent'")); $q->execute($args); $urgent = (int)$q->fetchColumn();
+    $openC = $total - $newC - $resolved;
+
+    echo '<h1>Analytics Dashboard</h1>';
+    if ($role === 'coordinator') echo '<p class="alert">Your role shows counts only. To open and handle requests, ask an admin for a liaison account for your sub-county.</p>';
+
+    echo '<form id="dash-filter" class="dash-filter" method="get" action="/admin"><input type="hidden" name="v" value="stats">';
+    echo '<div><label for="fcon">Sub-county</label><select id="fcon" name="con"><option value="">All sub-counties</option>';
+    foreach (array_keys(cfg('wards')) as $k) echo '<option'.($fCon === $k ? ' selected' : '').'>'.e($k).'</option>';
+    echo '</select></div>';
+    echo '<div><label for="ffrom">From</label><input type="date" id="ffrom" name="from" value="'.e($fFrom).'"></div>';
+    echo '<div><label for="fto">To</label><input type="date" id="fto" name="to" value="'.e($fTo).'"></div>';
+    echo '<button class="btn" type="submit">Filter</button>';
+    if ($where) echo ' <a class="btn alt" href="/admin?v=stats">Clear</a>';
+    echo '</form>';
+
+    echo '<div class="kpi-row">';
+    echo '<div class="kpi"><div class="kpi-val">'.e(count_fmt($total, $hide)).'</div><div class="kpi-label">Total Cases</div></div>';
+    echo '<div class="kpi yellow"><div class="kpi-val">'.e(count_fmt($newC, $hide)).'</div><div class="kpi-label">New (Awaiting Review)</div></div>';
+    echo '<div class="kpi teal"><div class="kpi-val">'.e(count_fmt($openC, $hide)).'</div><div class="kpi-label">In Progress</div></div>';
+    echo '<div class="kpi green"><div class="kpi-val">'.e(count_fmt($resolved, $hide)).'</div><div class="kpi-label">Resolved</div></div>';
+    echo '</div>';
+
+    $byStatus = []; $q = $pdo->prepare('SELECT status, COUNT(*) n FROM cases'.$wSql.' GROUP BY status'); $q->execute($args);
+    foreach ($q as $r) $byStatus[] = ['key' => $r['status'], 'label' => t('st.'.$r['status']), 'count' => (int)$r['n']];
+    $byCat = []; $q = $pdo->prepare('SELECT kind, category, COUNT(*) n FROM cases'.$wSql.' GROUP BY kind, category ORDER BY n DESC'); $q->execute($args);
+    foreach ($q as $r) $byCat[] = ['key' => $r['category'], 'label' => ($r['kind'] === 'support' ? t('sp.'.$r['category']) : t('cat.'.$r['category'])), 'count' => (int)$r['n']];
+    $byCounty = []; $q = $pdo->prepare('SELECT constituency, COUNT(*) n FROM cases'.$wSql.' GROUP BY constituency ORDER BY n DESC'); $q->execute($args);
+    foreach ($q as $r) $byCounty[] = ['label' => $r['constituency'], 'count' => (int)$r['n']];
+    $byUrg = []; $q = $pdo->prepare('SELECT urgency, COUNT(*) n FROM cases'.$wSql.' GROUP BY urgency'); $q->execute($args);
+    foreach ($q as $r) $byUrg[] = ['key' => $r['urgency'], 'label' => ucfirst($r['urgency']), 'count' => (int)$r['n']];
+    $timeline = []; $q = $pdo->prepare("SELECT DATE_FORMAT(created_at, '%Y-%m') AS m, COUNT(*) n FROM cases".$wSql.' GROUP BY m ORDER BY m DESC LIMIT 12'); $q->execute($args);
+    foreach ($q as $r) $timeline[] = ['month' => $r['m'], 'count' => (int)$r['n']];
+    $timeline = array_reverse($timeline);
+    $refs = []; foreach ($pdo->query('SELECT status, COUNT(*) n FROM escalations GROUP BY status') as $r) $refs[] = ['label' => ucfirst(str_replace('_', ' ', $r['status'])), 'count' => (int)$r['n']];
+
+    $chartData = ['byStatus' => $byStatus, 'byCategory' => $byCat, 'byCounty' => $byCounty, 'byUrgency' => $byUrg, 'timeline' => $timeline, 'referrals' => $refs];
+
+    echo '<div class="chart-grid">';
+    echo '<div class="chart-card"><h3>Cases by Status</h3><div class="chart-wrap"><canvas id="chart-status"></canvas></div></div>';
+    echo '<div class="chart-card"><h3>Cases by Urgency</h3><div class="chart-wrap"><canvas id="chart-urgency"></canvas></div></div>';
+    echo '<div class="chart-card wide tall"><h3>Cases by Category</h3><div class="chart-wrap"><canvas id="chart-category"></canvas></div></div>';
+    echo '<div class="chart-card"><h3>Cases by Sub-county</h3><div class="chart-wrap"><canvas id="chart-county"></canvas></div></div>';
+    echo '<div class="chart-card"><h3>Referrals</h3><div class="chart-wrap"><canvas id="chart-referrals"></canvas></div></div>';
+    echo '<div class="chart-card wide tall"><h3>Cases Over Time</h3><div class="chart-wrap"><canvas id="chart-timeline"></canvas></div></div>';
+    echo '</div>';
+
+    echo '<h2>Detailed breakdown</h2>';
+    $grid = [];
     foreach ($pdo->query('SELECT constituency, status, COUNT(*) n FROM cases GROUP BY constituency, status') as $r) $grid[$r['constituency']][$r['status']] = (int)$r['n'];
-    echo '<h1>Overview</h1>'.($role === 'coordinator' ? '<p class="alert">Your role shows counts only. To open and handle requests, ask an admin for a liaison account for your sub-county.</p>' : '').'<p>Counts only. Small numbers show as &lt;3 so nobody can be picked out.</p><div class="scroll" role="region" tabindex="0" aria-label="Cases by sub-county and status"><table class="tbl"><thead><tr><th scope="col">Sub-county</th>';
+    echo '<div class="scroll" role="region" tabindex="0" aria-label="Cases by sub-county and status"><table class="tbl"><thead><tr><th scope="col">Sub-county</th>';
     foreach ($st as $s2) echo '<th scope="col">'.e(t('st.'.$s2)).'</th>'; echo '</tr></thead><tbody>';
     foreach (array_keys(cfg('wards')) as $k) { echo '<tr><th scope="row">'.e($k).'</th>'; foreach ($st as $s2) echo '<td>'.e(count_fmt($grid[$k][$s2] ?? 0, $hide)).'</td>'; echo '</tr>'; }
-    echo '</tbody></table></div><h2>By topic</h2><div class="scroll" role="region" tabindex="0" aria-label="Cases by topic"><table class="tbl"><thead><tr><th scope="col">Topic</th><th scope="col">Cases</th></tr></thead><tbody>';
-    foreach ($pdo->query('SELECT kind, category, COUNT(*) n FROM cases GROUP BY kind, category ORDER BY n DESC') as $r) echo '<tr><th scope="row">'.e($r['kind'] === 'support' ? t('sp.'.$r['category']) : t('cat.'.$r['category'])).'</th><td>'.e(count_fmt((int)$r['n'], $hide)).'</td></tr>';
     echo '</tbody></table></div>';
+
+    echo '<script id="dash-data" type="application/json">'.json_encode($chartData, JSON_HEX_TAG|JSON_HEX_AMP).'</script>';
+    echo '<script src="/assets/chart.min.js"></script><script src="/assets/dashboard.js"></script>';
   } elseif ($v === 'mentors') {
     echo '<h1>Mentor pool</h1><div class="scroll" role="region" tabindex="0" aria-label="Mentor pool"><table class="tbl"><thead><tr><th scope="col">Name</th><th scope="col">Focus</th><th scope="col">Area</th><th scope="col">Contact</th><th scope="col">Active</th></tr></thead><tbody>';
     foreach ($pdo->query('SELECT * FROM mentors ORDER BY active DESC, name') as $m) echo '<tr><td>'.e($m['name']).'</td><td>'.e($m['focus']).'</td><td>'.e($m['constituency']).'</td><td>'.e($m['contact_enc'] ? dec($m['contact_enc']) : '').'</td><td>'.tpl_form('mtoggle', '<button class="btn alt" type="submit">'.($m['active'] ? 'Yes, turn off' : 'No, turn on').'</button>', ['id' => $m['id']]).'</td></tr>';

@@ -15,7 +15,7 @@ services:
       USSD_LIVE: ${USSD_LIVE:-0}
       DOMAIN: ${DOMAIN:-localhost}
       REQUIRE_2FA: ${REQUIRE_2FA:-1}
-      SIM_ENABLED: ${SIM_ENABLED:-0}
+      SIM_ENABLED: ${SIM_ENABLED:-1}
     ports: ["127.0.0.1:8080:80"]  # this computer only; the public proxy is in docker-compose.prod.yml
     depends_on:
       db: { condition: service_healthy }

@@ -1,5 +1,9 @@
 <?php
 // Front controller: Apache (FallbackResource) and PHP's dev server send every non-file URL here.
+if (php_sapi_name() === 'cli-server') {
+  $f = __DIR__.parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+  if (is_file($f)) return false;
+}
 require __DIR__.'/../app/lib.php';
 $path = '/'.trim((string)parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
 $routes = ['/'=>'home','/submit-concern'=>'submit','/request-support'=>'support','/resources'=>'resources','/case'=>'case',

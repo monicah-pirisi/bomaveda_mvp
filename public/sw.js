@@ -1,5 +1,5 @@
 // Pages are never cached (they can hold private data). Only static files are, plus an offline page.
-const V = 'bv2', ASSETS = ['/assets/style.css', '/assets/app.js', '/assets/icon-192.png', '/offline'];
+const V = 'bv3', ASSETS = ['/assets/style.css', '/assets/app.js', '/assets/icon-192.png', '/offline'];
 self.addEventListener('install', e => e.waitUntil(caches.open(V).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== V).map(x => caches.delete(x)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {
