@@ -74,7 +74,9 @@ page($A[lang() ?? 'en']['title'], function () use ($A) {
   echo '<section class="band"><div class="wrap"><p class="kick">'.e($a['kick']).'</p><h1>'.e($a['h1']).'</h1><p class="lead">'.e($a['lead']).'</p></div></section>';
   echo '<section class="band white"><div class="wrap"><h2>'.e($a['why']).'</h2><p>'.e($a['why.t']).'</p><div class="grid three pillars">';
   foreach ($a['pr'] as $p) echo '<div class="card"><h3>'.e($p[0]).'</h3><p>'.e($p[1]).'</p></div>';
-  echo '</div><div class="card"><h3>'.e($a['ussd']).'</h3><p class="code">'.e(ussd_code()).'</p><p>'.e($a['ussd.t']).'</p></div></div></section>';
+  echo '</div>';
+  if (getenv('USSD_LIVE') === '1') echo '<div class="card"><h3>'.e($a['ussd']).'</h3><p class="code">'.e(ussd_code()).'</p><p>'.e($a['ussd.t']).'</p></div>';
+  echo '</div></section>';
   echo '<section class="band"><div class="wrap"><h2>'.e($a['mv']).'</h2><div class="grid"><div class="card"><h3>'.e($a['mission']).'</h3><p>'.e($a['mission.t']).'</p></div><div class="card"><h3>'.e($a['vision']).'</h3><p class="lead"><strong>'.e($a['vision.q']).'</strong></p><p>'.e($a['vision.t']).'</p></div></div></div></section>';
   echo '<section class="band white"><div class="wrap"><h2>'.e($a['fv']).'</h2><div class="split"><div><h3>'.e($a['focus']).'</h3><ul class="ticks">'.$li($a['f']).'</ul></div><div><h3>'.e($a['values']).'</h3><ul class="ticks">'.$li($a['v']).'</ul></div></div></div></section>';
   echo '<section class="band"><div class="wrap"><h2>'.e($a['who']).'</h2><div class="split"><div class="card"><h3>'.e($a['who1']).'</h3><ul>'.$li($a['w1']).'</ul></div><div class="card"><h3>'.e($a['who2']).'</h3><ul>'.$li($a['w2']).'</ul></div></div></div></section>';

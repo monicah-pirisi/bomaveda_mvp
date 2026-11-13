@@ -77,5 +77,5 @@ ok('rate-limit table holds hashes, never raw IPs', strpos($dump, '203.0.113') ==
 foreach (['/.env', '/app/lib.php', '/bin/create-staff.php', '/bin/staff-tools.php', '/db/schema.sql', '/Dockerfile', '/tests/security_test.php'] as $pth) {
   [$c,$b] = http('GET', $pth); ok("not downloadable: $pth", strpos($b, '<?php') === false && strpos($b, 'APP_KEY') === false && strpos($b, 'MARIADB_') === false);
 }
-db()->exec("DELETE FROM cases WHERE id > $start"); db()->exec('DELETE FROM throttle');
+db()->prepare('DELETE FROM cases WHERE id > ?')->execute([$start]); db()->exec('DELETE FROM throttle');
 echo $fail ? "\n$fail FAILED\n" : "\nAll passed\n"; exit($fail ? 1 : 0);

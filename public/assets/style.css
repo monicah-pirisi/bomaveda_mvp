@@ -64,7 +64,7 @@ main:focus{outline:none}
 .bar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:4px;background:linear-gradient(90deg,var(--color-trust-blue) 0 25%,var(--color-community-teal) 25% 50%,var(--color-growth-green) 50% 75%,var(--color-sunrise-yellow) 75% 100%)}
 .bar-in{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-1) var(--space-5);max-width:var(--width-wide);margin:0 auto;padding:.6rem var(--gutter) .85rem}
 /* Phones: the fixed Quick exit button sits over the empty right side of the brand row, the nav wraps below at full width. */
-.brand{min-height:44px;display:inline-flex;align-items:center;gap:.6rem;min-height:44px;font-weight:800;font-size:1.3rem;letter-spacing:-.01em;color:var(--color-text-primary);text-decoration:none}
+.brand{display:inline-flex;align-items:center;gap:.6rem;min-height:44px;font-weight:800;font-size:1.3rem;letter-spacing:-.01em;color:var(--color-text-primary);text-decoration:none}
 .brand img{width:2rem;height:2rem;border-radius:var(--radius-small)}
 .bar nav{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:var(--space-1)}
 .bar nav a,.staffbar a{display:inline-flex;align-items:center;min-height:44px;padding:0 .9rem;border:2px solid transparent;border-radius:999px;color:var(--color-text-primary);font-size:var(--text-sm);font-weight:600;text-decoration:none;transition:background var(--transition-standard),border-color var(--transition-standard),color var(--transition-standard)}

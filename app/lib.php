@@ -19,7 +19,9 @@ function db(): PDO {
 function app_key(): string { return base64_decode((string)getenv('APP_KEY')); }
 function enc(string $s): string { $n = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES); return base64_encode($n.sodium_crypto_secretbox($s, $n, app_key())); }
 function dec(string $s): string { $r = base64_decode($s); $k = SODIUM_CRYPTO_SECRETBOX_NONCEBYTES;
-  return (string)sodium_crypto_secretbox_open(substr($r, $k), substr($r, 0, $k), app_key()); }
+  $plain = sodium_crypto_secretbox_open(substr($r, $k), substr($r, 0, $k), app_key());
+  if ($plain === false) throw new RuntimeException('Decryption failed');
+  return $plain; }
 function new_code(): string { $c = ''; for ($i = 0; $i < 12; $i++) $c .= random_int(0, 9); return $c; }
 function show_code(string $c): string { return implode('-', str_split($c, 4)); }
 // Behind our own proxy (private Docker address), use the visitor address it forwards. Direct public clients are never trusted.

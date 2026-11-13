@@ -1,12 +1,14 @@
 CREATE TABLE cases (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   code CHAR(12) NOT NULL UNIQUE,
+  kind ENUM('concern','support') NOT NULL DEFAULT 'concern',
   category VARCHAR(40) NOT NULL, constituency VARCHAR(40) NOT NULL, ward VARCHAR(40) NOT NULL,
   description TEXT NOT NULL,
   urgency ENUM('low','moderate','urgent') NOT NULL DEFAULT 'moderate',
   status ENUM('submitted','under_review','verified','intervention_assigned','active_support','monitoring','resolved') NOT NULL DEFAULT 'submitted',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE contacts (
   case_id BIGINT UNSIGNED PRIMARY KEY, method ENUM('phone','email') NOT NULL,
@@ -23,7 +25,6 @@ CREATE TABLE messages (
 CREATE TABLE throttle (
   h CHAR(64) NOT NULL, b VARCHAR(12) NOT NULL, at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, KEY (h,b)
 ) ENGINE=MEMORY;
-ALTER TABLE cases ADD COLUMN kind ENUM('concern','support') NOT NULL DEFAULT 'concern' AFTER code;
 -- Staff: created by hand with bin/create-staff.php. No public sign-up. Two-factor codes are required.
 CREATE TABLE staff (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(40) NOT NULL UNIQUE, pass_hash VARCHAR(255) NOT NULL,
