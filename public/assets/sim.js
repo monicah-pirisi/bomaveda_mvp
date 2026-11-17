@@ -48,6 +48,16 @@
   [].forEach.call(document.querySelectorAll('[data-k]'), function (b) { b.addEventListener('click', function () { inp.value += b.dataset.k; inp.focus(); }); });
   inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go.click(); } });
 
+  // Programmatic file input trigger — bypasses browser quirks with hidden inputs in labels
+  [].forEach.call(evPanel.querySelectorAll('.ev-opt'), function (opt) {
+    opt.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var fi = opt.querySelector('input[type=file]');
+      if (fi) fi.click();
+    });
+  });
+
   [].forEach.call(evPanel.querySelectorAll('input[type=file]'), function (fi) {
     fi.addEventListener('change', function () {
       if (!fi.files.length || !lastCode) return;
@@ -60,7 +70,10 @@
       evStatus.textContent = 'Uploading ' + type + '...';
       evStatus.className = 'ev-msg';
       fetch('/simulator', { method: 'POST', body: fd })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Server error ' + r.status);
+          return r.json();
+        })
         .then(function (j) {
           if (j.ok) {
             evStatus.textContent = 'Attached: ' + fi.files[0].name;
@@ -71,8 +84,8 @@
           }
           fi.value = '';
         })
-        .catch(function () {
-          evStatus.textContent = 'Connection error';
+        .catch(function (err) {
+          evStatus.textContent = err.message || 'Connection error';
           evStatus.className = 'ev-msg ev-err';
           fi.value = '';
         });
