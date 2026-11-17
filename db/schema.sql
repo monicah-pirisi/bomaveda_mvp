@@ -53,6 +53,24 @@ CREATE TABLE evidence (
   KEY idx_case (case_id),
   FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- Opportunities: jobs, skills, scholarships, bursaries managed by coordinators/admins.
+CREATE TABLE opportunities (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  type ENUM('job','skill','scholarship','bursary') NOT NULL,
+  title VARCHAR(120) NOT NULL,
+  title_sw VARCHAR(120) NOT NULL DEFAULT '',
+  description TEXT NOT NULL,
+  description_sw TEXT NOT NULL DEFAULT '',
+  provider VARCHAR(120) NOT NULL DEFAULT '',
+  location VARCHAR(80) NOT NULL DEFAULT '',
+  deadline DATE NULL,
+  link VARCHAR(500) NOT NULL DEFAULT '',
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_by INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_active_type (active, type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE escalations (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, case_id BIGINT UNSIGNED NOT NULL, agency VARCHAR(60) NOT NULL, reason_enc TEXT NOT NULL,
   status ENUM('requested','approved','rejected','referred') NOT NULL DEFAULT 'requested',

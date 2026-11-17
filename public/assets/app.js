@@ -18,6 +18,14 @@
 
   var al = document.querySelector('[role=alert]'); if (al) { al.setAttribute('tabindex', '-1'); al.focus({ preventScroll: false }); }
 
+  var catSel = document.querySelector('select[name=category]');
+  if (catSel) {
+    catSel.addEventListener('change', function () {
+      var details = document.querySelectorAll('.cat-detail');
+      for (var d = 0; d < details.length; d++) details[d].hidden = details[d].dataset.cat !== catSel.value;
+    });
+  }
+
   var f = document.getElementById('intake'); if (!f) return;
   document.documentElement.classList.add('js');
   var s = [].slice.call(f.querySelectorAll('.step')), i = 0, p = document.getElementById('prog');

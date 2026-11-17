@@ -7,8 +7,8 @@ function deny(): void { http_response_code(403); page('Not allowed', function ()
 function load_case(int $id): ?array { $s = db()->prepare('SELECT * FROM cases WHERE id=?'); $s->execute([$id]); return $s->fetch(PDO::FETCH_ASSOC) ?: null; }
 function may_open(array $me, ?array $c): bool { return $c && ($me['role'] === 'admin' || ($me['role'] === 'liaison' && $me['constituency'] === $c['constituency'])); }
 function go(string $to, string $flash = ''): void { if ($flash !== '') $_SESSION['flash'] = $flash; header('Location: '.$to); exit; }
-$views = ['cases','case','esc','stats','mentors','audit','pw'];
-$map = ['admin' => $views, 'liaison' => ['cases','case','pw'], 'coordinator' => ['stats','mentors','esc','pw']];
+$views = ['cases','case','esc','stats','mentors','opps','audit','pw'];
+$map = ['admin' => $views, 'liaison' => ['cases','case','pw'], 'coordinator' => ['stats','mentors','opps','esc','pw']];
 $v = in_array($_GET['v'] ?? '', $views, true) ? $_GET['v'] : ($role === 'coordinator' ? 'stats' : 'cases');
 if (!in_array($v, $map[$role], true)) deny();
 $reveal = false; $pdo = db();
@@ -40,6 +40,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     go('/admin?v=mentors', 'Name, focus and area are needed.');
   } elseif ($act === 'mtoggle' && in_array($role, ['admin','coordinator'], true)) {
     $pdo->prepare('UPDATE mentors SET active = 1 - active WHERE id=?')->execute([$id]); audit($uid, 'mentor_toggle'); go('/admin?v=mentors');
+  } elseif ($act === 'opp_add' && in_array($role, ['admin','coordinator'], true)) {
+    $ot = (string)($_POST['otype'] ?? ''); $title = trim((string)($_POST['title'] ?? '')); $titleSw = trim((string)($_POST['title_sw'] ?? ''));
+    $odesc = trim((string)($_POST['odesc'] ?? '')); $odescSw = trim((string)($_POST['odesc_sw'] ?? ''));
+    $prov = trim((string)($_POST['provider'] ?? '')); $oloc = trim((string)($_POST['olocation'] ?? ''));
+    $dead = (string)($_POST['deadline'] ?? ''); $olink = trim((string)($_POST['olink'] ?? ''));
+    if (in_array($ot, ['job','skill','scholarship','bursary'], true) && $title !== '' && mb_strlen($title) <= 120 && mb_strlen($odesc) <= 2000) {
+      $pdo->prepare('INSERT INTO opportunities (type,title,title_sw,description,description_sw,provider,location,deadline,link,created_by) VALUES (?,?,?,?,?,?,?,?,?,?)')
+        ->execute([$ot, $title, $titleSw, $odesc, $odescSw, $prov, $oloc, preg_match('/^\d{4}-\d{2}-\d{2}$/', $dead) ? $dead : null, $olink, $uid]);
+      audit($uid, 'opp_add'); go('/admin?v=opps', 'Opportunity added.');
+    }
+    go('/admin?v=opps', 'Title and type are required.');
+  } elseif ($act === 'opp_toggle' && in_array($role, ['admin','coordinator'], true)) {
+    $pdo->prepare('UPDATE opportunities SET active = 1 - active WHERE id=?')->execute([$id]); audit($uid, 'opp_toggle'); go('/admin?v=opps');
+  } elseif ($act === 'opp_del' && $role === 'admin') {
+    $pdo->prepare('DELETE FROM opportunities WHERE id=?')->execute([$id]); audit($uid, 'opp_delete'); go('/admin?v=opps', 'Opportunity deleted.');
   } elseif ($act === 'pw') {
     $s = $pdo->prepare('SELECT pass_hash FROM staff WHERE id=?'); $s->execute([$uid]); $h = (string)$s->fetchColumn(); $new = (string)($_POST['new'] ?? '');
     if (password_verify((string)($_POST['cur'] ?? ''), $h) && strlen($new) >= 12 && hash_equals($new, (string)($_POST['again'] ?? ''))) {
@@ -64,7 +79,7 @@ if (in_array($role, ['admin','liaison'], true)) {
   if ($v === 'cases' && $_SERVER['REQUEST_METHOD'] === 'GET') header('Refresh: 60'); // the list reloads itself every minute
 }
 page('Coordinator workspace', function () use ($me, $role, $v, $map, $reveal, $pdo, $newN, $f) {
-  $nav = ['cases'=>'Requests','esc'=>'Referrals','stats'=>'Overview','mentors'=>'Mentors','audit'=>'Audit log','pw'=>'Password'];
+  $nav = ['cases'=>'Requests','esc'=>'Referrals','stats'=>'Overview','mentors'=>'Mentors','opps'=>'Opportunities','audit'=>'Audit log','pw'=>'Password'];
   $cur = $v === 'case' ? 'cases' : $v;
   echo '<nav class="staffbar" aria-label="Workspace"><span class="who"><strong>'.e($me['username']).'</strong><span class="badge role">'.e($role).($me['constituency'] ? ', '.e($me['constituency']) : '').'</span></span>';
   foreach ($nav as $k => $lab) if (in_array($k, $map[$role], true)) echo '<a href="/admin?v='.$k.'"'.($k === $cur ? ' aria-current="page"' : '').'>'.e($lab).($k === 'cases' && $newN > 0 ? ' '.badge('st', 'submitted', $newN.' new') : '').'</a>';
@@ -181,6 +196,43 @@ page('Coordinator workspace', function () use ($me, $role, $v, $map, $reveal, $p
     foreach ($pdo->query('SELECT * FROM mentors ORDER BY active DESC, name') as $m) echo '<tr><td>'.e($m['name']).'</td><td>'.e($m['focus']).'</td><td>'.e($m['constituency']).'</td><td>'.e($m['contact_enc'] ? dec($m['contact_enc']) : '').'</td><td>'.tpl_form('mtoggle', '<button class="btn alt" type="submit">'.($m['active'] ? 'Yes, turn off' : 'No, turn on').'</button>', ['id' => $m['id']]).'</td></tr>';
     $o = '<option>All</option>'; foreach (array_keys(cfg('wards')) as $k) $o .= '<option>'.e($k).'</option>';
     echo '</tbody></table></div><div class="card"><h2>Add a mentor</h2>'.tpl_form('mentor', '<input name="name" maxlength="80" placeholder="Name" aria-label="Name" required><input name="focus" maxlength="80" placeholder="Focus, for example counselling" aria-label="Focus" required><select name="con" aria-label="Area">'.$o.'</select><input name="contact" maxlength="120" placeholder="Contact (optional)" aria-label="Contact"><button class="btn" type="submit">Add</button>').'</div>';
+  } elseif ($v === 'opps') {
+    echo '<h1>Opportunities</h1><p>Jobs, skills training, scholarships and bursaries listed on the public Resources page.</p>';
+    $oppFilter = (string)($_GET['ot'] ?? '');
+    echo '<p>';
+    foreach (['' => 'All', 'job' => 'Jobs', 'skill' => 'Skills', 'scholarship' => 'Scholarships', 'bursary' => 'Bursaries'] as $fk => $flab)
+      echo '<a class="btn'.($oppFilter === $fk ? '' : ' alt').'" href="/admin?v=opps'.($fk !== '' ? '&amp;ot='.$fk : '').'">'.e($flab).'</a> ';
+    echo '</p>';
+    $owhere = '1=1'; $oargs = [];
+    if (in_array($oppFilter, ['job','skill','scholarship','bursary'], true)) { $owhere = 'type=?'; $oargs = [$oppFilter]; }
+    $s = $pdo->prepare('SELECT * FROM opportunities WHERE '.$owhere.' ORDER BY active DESC, created_at DESC LIMIT 100'); $s->execute($oargs);
+    $rows = '';
+    foreach ($s as $op) {
+      $dl = $op['deadline'] ? e($op['deadline']) : '—';
+      $rows .= '<tr><td>'.e($op['title']).'</td><td><span class="badge">'.e($op['type']).'</span></td><td>'.e($op['provider']).'</td><td>'.e($op['location']).'</td><td>'.$dl.'</td>';
+      $rows .= '<td>'.tpl_form('opp_toggle', '<button class="btn alt" type="submit">'.($op['active'] ? 'Active' : 'Hidden').'</button>', ['id' => $op['id']]).'</td>';
+      if ($role === 'admin') $rows .= '<td>'.tpl_form('opp_del', '<button class="btn danger" type="submit">Delete</button>', ['id' => $op['id']]).'</td>';
+      $rows .= '</tr>';
+    }
+    if ($rows === '') echo '<p class="alert">No opportunities yet. Add one below.</p>';
+    else {
+      echo '<div class="scroll" role="region" tabindex="0" aria-label="Opportunities"><table class="tbl"><thead><tr><th scope="col">Title</th><th scope="col">Type</th><th scope="col">Provider</th><th scope="col">Location</th><th scope="col">Deadline</th><th scope="col">Status</th>';
+      if ($role === 'admin') echo '<th scope="col"></th>';
+      echo '</tr></thead><tbody>'.$rows.'</tbody></table></div>';
+    }
+    $types = '<option value="">— Choose type —</option><option value="job">Job</option><option value="skill">Skills training</option><option value="scholarship">Scholarship</option><option value="bursary">Bursary</option>';
+    echo '<div class="card"><h2>Add an opportunity</h2>'.tpl_form('opp_add',
+      '<select name="otype" required aria-label="Type">'.$types.'</select>'.
+      '<label>Title (English) *</label><input name="title" maxlength="120" required>'.
+      '<label>Title (Kiswahili)</label><input name="title_sw" maxlength="120">'.
+      '<label>Description (English)</label><textarea name="odesc" rows="3" maxlength="2000"></textarea>'.
+      '<label>Description (Kiswahili)</label><textarea name="odesc_sw" rows="3" maxlength="2000"></textarea>'.
+      '<label>Provider / Organisation</label><input name="provider" maxlength="120">'.
+      '<label>Location</label><input name="olocation" maxlength="80">'.
+      '<label>Deadline (optional)</label><input type="date" name="deadline">'.
+      '<label>Link (optional)</label><input name="olink" maxlength="500" placeholder="https://">'.
+      '<p><button class="btn" type="submit">Add opportunity</button></p>'
+    ).'</div>';
   } elseif ($v === 'audit') {
     echo '<h1>Audit log</h1><div class="scroll" role="region" tabindex="0" aria-label="Audit log"><table class="tbl"><thead><tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">Action</th><th scope="col">Case</th><th scope="col">Note</th></tr></thead><tbody>';
     foreach ($pdo->query('SELECT a.*, s.username FROM audit_log a LEFT JOIN staff s ON s.id=a.staff_id ORDER BY a.id DESC LIMIT 100') as $a) echo '<tr><td>'.e($a['at']).'</td><td>'.e((string)$a['username']).'</td><td>'.e($a['action']).'</td><td>'.e((string)$a['case_id']).'</td><td>'.e((string)$a['note']).'</td></tr>';

@@ -13,7 +13,7 @@ return [
     'Malindi'=>['Jilore','Kakuyuni','Ganda','Malindi Town','Shella'],
     'Magarini'=>['Marafa','Magarini','Gongoni','Adu','Garashi','Sabaki'],
   ],
-  'support_types' => ['mentorship','counselling','education','jobs'],
+  'support_types' => ['mentorship','counselling'],
   'agencies' => ['County social services','Child protection services','Partner NGO or civil society group','Health or counselling service','Authorities (rare, immediate danger only)'],
   'partners' => ['Kilifi County','Haki Africa','KECOSCE','Coast Education Centre','Sauti ya Vijana'],
   'guides' => [

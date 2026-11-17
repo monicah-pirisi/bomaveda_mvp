@@ -1,6 +1,5 @@
 <?php
 require __DIR__.'/../ussd.php';
-if (getenv('SIM_ENABLED') === '0') { http_response_code(404); page('Not found', function () { echo '<h1>404</h1><p><a href="/">Bomaveda</a></p>'; }); exit; }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'evidence') {
   header('Content-Type: application/json; charset=utf-8');

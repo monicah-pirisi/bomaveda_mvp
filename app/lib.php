@@ -69,12 +69,12 @@ function page(string $title, callable $body, bool $wide = false, bool $staff = f
   echo '<header class="bar"><div class="bar-in"><a class="brand" href="'.e($pub ? u('/') : '/').'"><img src="/assets/logo.png" alt="" width="36" height="36"><span>Bomaveda</span></a>';
   if ($pub) {
     echo '<nav aria-label="'.e(t('navlabel')).'">';
-    foreach (['/submit-concern' => 'share', '/request-support' => 'support', '/resources' => 'res', '/case' => 'check', '/about' => 'about'] as $href => $key)
+    foreach (['/about' => 'about', '/submit-concern' => 'share', '/request-support' => 'support', '/resources' => 'res', '/case' => 'check', '/simulator' => 'simlink'] as $href => $key)
       echo '<a href="'.e(u($href)).'"'.($path === $href ? ' aria-current="page"' : '').'>'.e(t($key)).'</a>';
-    echo '<a class="lang" lang="'.$o.'" hreflang="'.$o.'" href="'.e($path.'?l='.$o).'">'.e(t('other')).'</a></nav>';
+    echo '</nav><a class="lang-toggle" lang="'.$o.'" hreflang="'.$o.'" href="'.e($path.'?l='.$o).'">'.e(t('other')).'</a>';
   }
   echo '</div></header><main id="main" tabindex="-1"'.($main !== '' ? ' class="'.e($main).'"' : '').'>'; $body(); echo '</main>';
-  if ($l || $staff) echo '<footer class="foot"><div class="foot-in"><div><p><strong>Bomaveda</strong> '.e(t('ft.tag')).'</p><p>'.e(t('ft.line')).'</p></div><nav aria-label="'.e(t('footlabel')).'"><a href="'.e(u('/about')).'">'.e(t('about')).'</a> <a href="'.e(u('/resources')).'">'.e(t('res')).'</a> <a href="/auth">Coordinator workspace</a>'.(getenv('SIM_ENABLED') !== '0' ? ' <a href="'.e(u('/simulator')).'">'.e(t('simlink')).'</a>' : '').'</nav></div></footer>';
+  if ($l || $staff) echo '<footer class="foot"><div class="foot-in"><div><p><strong>Bomaveda</strong> '.e(t('ft.tag')).'</p><p>'.e(t('ft.line')).'</p></div><nav aria-label="'.e(t('footlabel')).'"><a href="'.e(u('/about')).'">'.e(t('about')).'</a> <a href="'.e(u('/resources')).'">'.e(t('res')).'</a> <a href="/auth">Coordinator workspace</a> <a href="'.e(u('/simulator')).'">'.e(t('simlink')).'</a></nav></div></footer>';
   echo '<script src="/assets/app.js"></script></body></html>';
 }
 require __DIR__.'/auth.php';
