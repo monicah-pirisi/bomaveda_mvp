@@ -80,9 +80,12 @@ page($A[lang() ?? 'en']['title'], function () use ($A) {
   echo '<section class="band"><div class="wrap"><h2>'.e($a['mv']).'</h2><div class="grid"><div class="card"><h3>'.e($a['mission']).'</h3><p>'.e($a['mission.t']).'</p></div><div class="card"><h3>'.e($a['vision']).'</h3><p class="lead"><strong>'.e($a['vision.q']).'</strong></p><p>'.e($a['vision.t']).'</p></div></div></div></section>';
   echo '<section class="band white"><div class="wrap"><h2>'.e($a['fv']).'</h2><div class="split"><div><h3>'.e($a['focus']).'</h3><ul class="ticks">'.$li($a['f']).'</ul></div><div><h3>'.e($a['values']).'</h3><ul class="ticks">'.$li($a['v']).'</ul></div></div></div></section>';
   echo '<section class="band"><div class="wrap"><h2>'.e($a['who']).'</h2><div class="split"><div class="card"><h3>'.e($a['who1']).'</h3><ul>'.$li($a['w1']).'</ul></div><div class="card"><h3>'.e($a['who2']).'</h3><ul>'.$li($a['w2']).'</ul></div></div></div></section>';
+  // Referral network hidden — partnerships not yet confirmed
+  if (false) {
   echo '<section class="band white"><div class="wrap"><h2>'.e($a['net']).'</h2><p>'.e($a['net.t']).'</p><div class="scroll" role="region" tabindex="0" aria-label="'.e($a['net']).'"><table class="tbl"><thead><tr>';
   foreach ($a['th'] as $h) echo '<th scope="col">'.e($h).'</th>';
   echo '</tr></thead><tbody>'; foreach ($a['rows'] as $r) echo '<tr><th scope="row">'.e($r[0]).'</th><td>'.e($r[1]).'</td><td>'.e($r[2]).'</td></tr>'; echo '</tbody></table></div></div></section>';
+  }
   echo '<section class="band"><div class="wrap split"><div><h2>'.e($a['how']).'</h2><ul class="ticks">'.$li($a['h']).'</ul></div><div class="card"><h2>'.e($a['dp']).'</h2><ul class="ticks">'.$li($a['d']).'</ul></div></div></section>';
   echo '<section class="band white"><div class="wrap"><h2>'.e($a['law']).'</h2><p>'.e($a['law.t']).'</p><div class="grid four pillars">';
   foreach ($a['art'] as $r) echo '<div class="card"><h3>'.e($r[0]).'</h3><p>'.e($r[1]).'</p></div>';

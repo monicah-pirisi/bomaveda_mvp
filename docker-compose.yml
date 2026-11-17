@@ -19,6 +19,8 @@ services:
     ports: ["127.0.0.1:8080:80"]  # this computer only; the public proxy is in docker-compose.prod.yml
     depends_on:
       db: { condition: service_healthy }
+    volumes:
+      - evidence:/var/www/html/storage/evidence
     networks: [default, backend]
     security_opt: ["no-new-privileges:true"]
     healthcheck:
@@ -50,3 +52,4 @@ networks:
     internal: true
 volumes:
   dbdata:
+  evidence:

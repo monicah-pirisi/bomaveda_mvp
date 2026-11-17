@@ -10,3 +10,4 @@ COPY app /var/www/html/app
 COPY public /var/www/html/public
 COPY bin /var/www/html/bin
 COPY tests /var/www/html/tests
+RUN mkdir -p /var/www/html/storage/evidence && chown www-data:www-data /var/www/html/storage/evidence
