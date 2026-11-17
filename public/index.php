@@ -6,8 +6,11 @@ if (php_sapi_name() === 'cli-server') {
 }
 require __DIR__.'/../app/lib.php';
 $path = '/'.trim((string)parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/');
+
+if (str_starts_with($path, '/api/')) { require __DIR__.'/api.php'; exit; }
+
 $routes = ['/'=>'home','/submit-concern'=>'submit','/request-support'=>'support','/resources'=>'resources','/case'=>'case',
-           '/auth'=>'auth','/admin'=>'admin','/simulator'=>'simulator','/offline'=>'offline','/about'=>'about'];
+           '/auth'=>'auth','/admin'=>'admin','/simulator'=>'simulator','/offline'=>'offline','/about'=>'about','/docs/api'=>'docs'];
 if (!isset($routes[$path])) {
   http_response_code(404);
   page('Not found', function () { echo '<h1>404</h1><p><a href="/">Bomaveda</a></p>'; });
