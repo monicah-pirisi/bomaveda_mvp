@@ -6,6 +6,23 @@
   var last = 0;
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var n = Date.now(); if (n - last < 600) leave(); last = n; } });
 
+  var navToggle = document.getElementById('nav-toggle');
+  var mainNav = document.getElementById('main-nav');
+  if (navToggle && mainNav) {
+    navToggle.addEventListener('click', function () {
+      var open = mainNav.classList.toggle('open');
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      navToggle.innerHTML = open ? '&#10005;' : '&#9776;';
+    });
+    mainNav.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A') {
+        mainNav.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+        navToggle.innerHTML = '&#9776;';
+      }
+    });
+  }
+
   [].forEach.call(document.forms, function (f) {
     f.addEventListener('submit', function (e) {
       if (f.dataset.busy) { e.preventDefault(); return; }

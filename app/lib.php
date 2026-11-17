@@ -68,7 +68,8 @@ function page(string $title, callable $body, bool $wide = false, bool $staff = f
   echo '<a class="skip" href="#main">'.e(t('skip')).'</a>';
   echo '<header class="bar"><div class="bar-in"><a class="brand" href="'.e($pub ? u('/') : '/').'"><img src="/assets/logo.png" alt="" width="36" height="36"><span>Bomaveda</span></a>';
   if ($pub) {
-    echo '<nav aria-label="'.e(t('navlabel')).'">';
+    echo '<button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-label="Menu">&#9776;</button>';
+    echo '<nav aria-label="'.e(t('navlabel')).'" id="main-nav">';
     foreach (['/about' => 'about', '/submit-concern' => 'share', '/request-support' => 'support', '/resources' => 'res', '/case' => 'check', '/simulator' => 'simlink'] as $href => $key)
       echo '<a href="'.e(u($href)).'"'.($path === $href ? ' aria-current="page"' : '').'>'.e(t($key)).'</a>';
     echo '<a class="lang-toggle" lang="'.$o.'" hreflang="'.$o.'" href="'.e($path.'?l='.$o).'">'.e(t('other')).'</a>';
