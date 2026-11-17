@@ -65,13 +65,14 @@ function page(string $title, callable $body, bool $wide = false, bool $staff = f
   $l = lang(); $o = $l === 'sw' ? 'en' : 'sw'; $path = '/'.trim((string)parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH), '/'); $pub = $l && !$staff;
   $main = trim(($layout !== '' ? $layout : ($staff ? 'staff' : ($wide ? 'wide' : ''))));
   echo '<!doctype html><html lang="'.($l ?? 'en').'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><meta name="theme-color" content="#0077A8"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" href="/assets/icon-192.png"><link rel="apple-touch-icon" href="/assets/icon-192.png"><title>'.e($title).'</title><link rel="stylesheet" href="/assets/style.css"></head><body>';
-  echo '<a class="skip" href="#main">'.e(t('skip')).'</a><a id="qe" class="qe" href="https://www.google.com">'.e(t('quick')).'</a>';
+  echo '<a class="skip" href="#main">'.e(t('skip')).'</a>';
   echo '<header class="bar"><div class="bar-in"><a class="brand" href="'.e($pub ? u('/') : '/').'"><img src="/assets/logo.png" alt="" width="36" height="36"><span>Bomaveda</span></a>';
   if ($pub) {
     echo '<nav aria-label="'.e(t('navlabel')).'">';
     foreach (['/about' => 'about', '/submit-concern' => 'share', '/request-support' => 'support', '/resources' => 'res', '/case' => 'check', '/simulator' => 'simlink'] as $href => $key)
       echo '<a href="'.e(u($href)).'"'.($path === $href ? ' aria-current="page"' : '').'>'.e(t($key)).'</a>';
-    echo '<a class="lang-toggle" lang="'.$o.'" hreflang="'.$o.'" href="'.e($path.'?l='.$o).'">'.e(t('other')).'</a></nav>';
+    echo '<a class="lang-toggle" lang="'.$o.'" hreflang="'.$o.'" href="'.e($path.'?l='.$o).'">'.e(t('other')).'</a>';
+    echo '<a id="qe" class="qe" href="https://www.google.com">'.e(t('quick')).'</a></nav>';
   }
   echo '</div></header><main id="main" tabindex="-1"'.($main !== '' ? ' class="'.e($main).'"' : '').'>'; $body(); echo '</main>';
   if ($l || $staff) echo '<footer class="foot"><div class="foot-in"><div><p><strong>Bomaveda</strong> '.e(t('ft.tag')).'</p><p>'.e(t('ft.line')).'</p></div><nav aria-label="'.e(t('footlabel')).'"><a href="'.e(u('/about')).'">'.e(t('about')).'</a> <a href="'.e(u('/resources')).'">'.e(t('res')).'</a> <a href="/auth">Coordinator workspace</a> <a href="'.e(u('/simulator')).'">'.e(t('simlink')).'</a></nav></div></footer>';
