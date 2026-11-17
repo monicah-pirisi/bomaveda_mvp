@@ -9,17 +9,21 @@
   var navToggle = document.getElementById('nav-toggle');
   var mainNav = document.getElementById('main-nav');
   if (navToggle && mainNav) {
+    function closeNav() {
+      mainNav.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
+      navToggle.textContent = '☰';
+    }
     navToggle.addEventListener('click', function () {
-      var open = mainNav.classList.toggle('open');
-      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      navToggle.innerHTML = open ? '&#10005;' : '&#9776;';
+      var isOpen = mainNav.classList.toggle('open');
+      navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      navToggle.textContent = isOpen ? '✕' : '☰';
     });
-    mainNav.addEventListener('click', function (e) {
-      if (e.target.tagName === 'A') {
-        mainNav.classList.remove('open');
-        navToggle.setAttribute('aria-expanded', 'false');
-        navToggle.innerHTML = '&#9776;';
-      }
+    [].forEach.call(mainNav.querySelectorAll('a'), function (a) {
+      a.addEventListener('click', closeNav);
+    });
+    document.addEventListener('click', function (e) {
+      if (mainNav.classList.contains('open') && !mainNav.contains(e.target) && e.target !== navToggle) closeNav();
     });
   }
 
