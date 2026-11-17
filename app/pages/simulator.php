@@ -76,10 +76,10 @@ page('USSD demo', function () use ($keys) {
   echo '<h3>Attach Supporting Evidence</h3>';
   echo '<p>Strengthen your report with evidence. All files are stored securely.</p>';
   echo '<div class="ev-grid">';
-  echo '<label class="ev-opt"><input type="file" accept="image/jpeg,image/png,image/webp" data-type="photo" hidden><span class="ev-icon">&#128247;</span><span>Photo</span></label>';
-  echo '<label class="ev-opt"><input type="file" accept="video/mp4,video/webm,video/quicktime" data-type="video" hidden><span class="ev-icon">&#127909;</span><span>Video</span></label>';
-  echo '<label class="ev-opt"><input type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/webm,audio/mp4" data-type="voice" hidden><span class="ev-icon">&#127908;</span><span>Voice Note</span></label>';
-  echo '<label class="ev-opt"><input type="file" accept=".pdf,.doc,.docx,.txt" data-type="document" hidden><span class="ev-icon">&#128196;</span><span>Document</span></label>';
+  echo '<label class="ev-opt"><input type="file" accept="image/jpeg,image/png,image/webp" data-type="photo" class="sr"><span class="ev-icon">&#128247;</span><span>Photo</span></label>';
+  echo '<label class="ev-opt"><input type="file" accept="video/mp4,video/webm,video/quicktime" data-type="video" class="sr"><span class="ev-icon">&#127909;</span><span>Video</span></label>';
+  echo '<label class="ev-opt"><input type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/webm,audio/mp4" data-type="voice" class="sr"><span class="ev-icon">&#127908;</span><span>Voice Note</span></label>';
+  echo '<label class="ev-opt"><input type="file" accept=".pdf,.doc,.docx,.txt" data-type="document" class="sr"><span class="ev-icon">&#128196;</span><span>Document</span></label>';
   echo '</div>';
   echo '<div id="ev-status"></div>';
   echo '<button type="button" id="ev-skip" class="btn alt ev-skip">Skip &mdash; finish without evidence</button>';

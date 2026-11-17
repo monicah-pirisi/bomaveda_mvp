@@ -71,7 +71,7 @@ function page(string $title, callable $body, bool $wide = false, bool $staff = f
     echo '<nav aria-label="'.e(t('navlabel')).'">';
     foreach (['/about' => 'about', '/submit-concern' => 'share', '/request-support' => 'support', '/resources' => 'res', '/case' => 'check', '/simulator' => 'simlink'] as $href => $key)
       echo '<a href="'.e(u($href)).'"'.($path === $href ? ' aria-current="page"' : '').'>'.e(t($key)).'</a>';
-    echo '</nav><a class="lang-toggle" lang="'.$o.'" hreflang="'.$o.'" href="'.e($path.'?l='.$o).'">'.e(t('other')).'</a>';
+    echo '<a class="lang-toggle" lang="'.$o.'" hreflang="'.$o.'" href="'.e($path.'?l='.$o).'">'.e(t('other')).'</a></nav>';
   }
   echo '</div></header><main id="main" tabindex="-1"'.($main !== '' ? ' class="'.e($main).'"' : '').'>'; $body(); echo '</main>';
   if ($l || $staff) echo '<footer class="foot"><div class="foot-in"><div><p><strong>Bomaveda</strong> '.e(t('ft.tag')).'</p><p>'.e(t('ft.line')).'</p></div><nav aria-label="'.e(t('footlabel')).'"><a href="'.e(u('/about')).'">'.e(t('about')).'</a> <a href="'.e(u('/resources')).'">'.e(t('res')).'</a> <a href="/auth">Coordinator workspace</a> <a href="'.e(u('/simulator')).'">'.e(t('simlink')).'</a></nav></div></footer>';
