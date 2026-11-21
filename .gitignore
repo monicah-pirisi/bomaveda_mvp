@@ -1,1 +1,4 @@
 .env
+docs/
+public/api.php
+app/pages/docs.php
